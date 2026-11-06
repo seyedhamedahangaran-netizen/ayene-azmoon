@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="آینه آزمون">
+<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+<title>آینه آزمون</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0E0D23">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;600;800&display=swap">
+<style>
+/* Concept: a night-sky "mirror" for the student's feelings; glass cards over a slow aurora, one big rounded tap target per question. */
+:root{
+  --bg:#0E0D23; --bg2:#1A1745; --card:rgba(255,255,255,.07); --card-solid:#1D1B47; --line:rgba(255,255,255,.15);
+  --fg:#F5F3FF; --muted:#B4B0DA; --acc:#6D4DF2; --acc-soft:#A18CFF; --on-acc:#fff;
+  --mint:#34E0B1; --coral:#FF7A6B; --sun:#FFCB47; --sky:#55B7FF; --pink:#FF6FB5; --sand:#D2B07A; --red:#FF5568; --teal:#3CC8D6;
+  --shadow:0 12px 32px rgba(0,0,0,.38); --blobop:.38; --font-d:'Lalezar','Vazirmatn',Tahoma,sans-serif; --font-b:'Vazirmatn',Tahoma,'Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#F7F5FF; --bg2:#E7E1FF; --card:rgba(255,255,255,.82); --card-solid:#FFFFFF; --line:rgba(40,26,120,.15);
+  --fg:#1B1740; --muted:#575288; --acc:#5638E0; --acc-soft:#6E4FF0;
+  --mint:#0FB588; --coral:#EE5648; --sun:#F2A200; --sky:#2A8FE6; --pink:#E8459A; --sand:#B98A45; --red:#E23A52; --teal:#14A8B8;
+  --shadow:0 12px 30px rgba(60,40,160,.16); --blobop:.3; color-scheme:light;}}
+:root[data-theme="light"]{
+  --bg:#F7F5FF; --bg2:#E7E1FF; --card:rgba(255,255,255,.82); --card-solid:#FFFFFF; --line:rgba(40,26,120,.15);
+  --fg:#1B1740; --muted:#575288; --acc:#5638E0; --acc-soft:#6E4FF0;
+  --mint:#0FB588; --coral:#EE5648; --sun:#F2A200; --sky:#2A8FE6; --pink:#E8459A; --sand:#B98A45; --red:#E23A52; --teal:#14A8B8;
+  --shadow:0 12px 30px rgba(60,40,160,.16); --blobop:.3; color-scheme:light;}
+:root[data-theme="dark"]{color-scheme:dark}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-b);font-size:16px;line-height:1.7;
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-height:100vh;overflow-x:hidden}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--acc-soft);outline-offset:2px;border-radius:12px}
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.aurora i{position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(56px);will-change:transform;opacity:var(--blobop);animation:drift 22s ease-in-out infinite alternate}
+.aurora i:nth-child(1){background:var(--acc);top:-24vmax;right:-20vmax}
+.aurora i:nth-child(2){background:var(--pink);bottom:-26vmax;left:-24vmax;animation-delay:-7s}
+.aurora i:nth-child(3){background:var(--mint);top:38%;right:-34vmax;width:44vmax;height:44vmax;animation-delay:-13s;opacity:calc(var(--blobop) * .7)}
+@keyframes drift{to{transform:translate3d(-8vmax,6vmax,0) scale(1.12)}}
+#app{max-width:560px;margin:0 auto;padding-block:20px 120px}
+.enter{animation:slidein .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes slidein{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.94)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+h1,h2,h3{font-family:var(--font-d);font-weight:400;margin:0;text-wrap:balance;line-height:1.35}
+h1{font-size:2rem} h2{font-size:1.5rem} h3{font-size:1.15rem}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:.85rem} .tiny{font-size:.75rem}
+.stack{display:flex;flex-direction:column;gap:14px} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.card{background:var(--card-solid);background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:18px;font-weight:800;color:var(--on-acc);
+  background:linear-gradient(135deg,var(--acc),var(--pink));box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 45%,transparent);transition:transform .15s}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:var(--card);color:var(--fg);box-shadow:none;border:1px solid var(--line)}
+.btn.block{width:100%}
+.btn.small{min-height:40px;padding:0 14px;font-size:.9rem;border-radius:14px}
+.btn.danger{background:linear-gradient(135deg,var(--red),var(--coral))}
+.icon{width:44px;height:44px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:1.3rem;flex:none}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:54px;height:54px;border-radius:18px;background:conic-gradient(from 210deg,var(--acc),var(--pink),var(--sun),var(--mint),var(--acc));display:grid;place-items:center;flex:none;animation:spin 14s linear infinite}
+.logo b{width:34px;height:34px;border-radius:50%;background:var(--bg);display:block;box-shadow:inset 0 0 0 5px color-mix(in srgb,var(--fg) 12%,transparent)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero{position:relative;overflow:hidden;border-radius:28px;padding:22px;background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 70%,#000),color-mix(in srgb,var(--pink) 60%,var(--acc)));color:#fff;box-shadow:var(--shadow)}
+.hero::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;left:-50px;bottom:-70px;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 70%)}
+.hero .btn{background:#fff;color:#2b1a8f;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.input{width:100%;min-height:52px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);padding:10px 16px}
+textarea.input{min-height:90px;resize:vertical}
+.input:focus{border-color:var(--acc-soft);outline:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--acc-soft) 30%,transparent)}
+label.lb{display:block;font-weight:800;margin-bottom:8px}
+.avatar{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-family:var(--font-d);font-size:1.3rem;color:#fff;flex:none}
+.code{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;direction:ltr;unicode-bidi:isolate;letter-spacing:.12em;font-weight:700;padding:2px 10px;border-radius:10px;background:color-mix(in srgb,var(--acc-soft) 22%,transparent);display:inline-block;font-size:.85rem}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;font-size:.8rem;font-weight:800;background:var(--card-solid);background:color-mix(in srgb,var(--c,var(--acc-soft)) 22%,transparent);border:1px solid color-mix(in srgb,var(--c,var(--acc-soft)) 55%,transparent)}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,var(--acc-soft))}
+.sc{display:flex;gap:12px;align-items:center;text-align:start;width:100%;margin-bottom:10px}
+.sc:active{transform:scale(.985)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{min-height:76px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px;font-weight:800;text-align:center;transition:transform .15s,background .2s}
+.tile .em{font-size:1.9rem;line-height:1.2}
+.tile:active{transform:scale(.95)}
+.tile.pop{animation:pop .35s}
+.tile.sel{border-color:var(--c,var(--acc-soft));background:var(--card-solid);background:color-mix(in srgb,var(--c,var(--acc-soft)) 26%,var(--card-solid));box-shadow:0 0 0 3px color-mix(in srgb,var(--c,var(--acc-soft)) 35%,transparent),0 10px 24px color-mix(in srgb,var(--c,var(--acc-soft)) 35%,transparent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:transform .15s}
+.chip:active{transform:scale(.95)}
+.chip.pop{animation:pop .3s}
+.chip.sel{border-color:var(--acc-soft);background:var(--card-solid);background:color-mix(in srgb,var(--acc-soft) 28%,var(--card-solid));font-weight:800}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;min-height:48px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);font-weight:800;transition:transform .15s;min-width:0}
+.seg button:active{transform:scale(.94)}
+.seg button.pop{animation:pop .3s}
+.seg button.sel{border-color:transparent;color:#fff;background:linear-gradient(135deg,var(--acc),var(--pink))}
+.scale{display:flex;justify-content:space-between;color:var(--muted);font-size:.75rem;margin-top:4px}
+.q{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.step:last-child{border-bottom:0}
+.step .btn{min-height:44px;width:44px;padding:0;border-radius:14px;font-size:1.3rem}
+.step b{font-family:var(--font-d);font-weight:400;font-size:1.6rem;min-width:44px;text-align:center}
+.list1{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.list1 .chip{border-radius:16px;min-height:52px;padding:6px 12px;justify-content:center;text-align:center;font-size:.9rem;line-height:1.4}
+.wtop{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.prog{flex:1;height:12px;border-radius:99px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.prog i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--pink),var(--sun));transition:width .6s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 14px var(--pink)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  background:linear-gradient(to top,var(--bg) 55%,transparent)}
+.bar>div{max-width:560px;margin:0 auto;display:flex;gap:10px}
+.bar .btn:last-child{flex:1}
+.shake{animation:shake .4s}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:99px;background:linear-gradient(90deg,var(--mint),var(--sun),var(--coral));outline-offset:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;border-radius:50%;background:#fff;border:5px solid var(--acc);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:5px solid var(--acc)}
+.big{font-family:var(--font-d);font-size:2.6rem;line-height:1.1}
+.meter{height:12px;border-radius:99px;background:color-mix(in srgb,var(--fg) 12%,transparent);overflow:hidden}
+.meter i{display:block;height:100%;width:0;border-radius:99px;background:var(--c);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.dimrow{display:grid;grid-template-columns:110px 1fr 36px;gap:10px;align-items:center;font-size:.9rem}
+.dimrow b{text-align:end;font-variant-numeric:tabular-nums}
+.ringbox{position:relative;width:132px;height:132px;flex:none}
+.ringbox svg{transform:rotate(-90deg);width:100%;height:100%}
+.ringbox .n{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-d);font-size:2.4rem}
+.ring-bg{stroke:color-mix(in srgb,var(--fg) 14%,transparent)}
+.ring-fg{transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+.ins{display:flex;gap:10px;align-items:flex-start;padding:8px 0}
+.ins i{font-style:normal;font-weight:800;width:28px;height:28px;border-radius:10px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--c) 25%,transparent);border:1px solid color-mix(in srgb,var(--c) 55%,transparent)}
+.scroll-x{overflow-x:auto;max-width:100%}
+table.heat{border-collapse:separate;border-spacing:5px;min-width:100%;font-size:.85rem}
+table.heat th{font-weight:600;color:var(--muted);white-space:nowrap;padding:2px 4px}
+table.heat th:first-child{text-align:start;position:sticky;right:0}
+table.heat td.c{min-width:54px;height:42px;border-radius:12px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);background:color-mix(in srgb,var(--c) calc(var(--k) * 1%),color-mix(in srgb,var(--fg) 8%,transparent))}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:6px}
+.stackbar{display:flex;height:22px;border-radius:99px;overflow:hidden;background:color-mix(in srgb,var(--fg) 10%,transparent)}
+.stackbar i{display:block;background:var(--c);min-width:0}
+.chart text{fill:var(--muted);font-size:10px;font-family:var(--font-b)}
+.chart .vt{fill:var(--fg);font-weight:800}
+.draw{stroke-dasharray:1200;stroke-dashoffset:1200;animation:draw 1.4s .2s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--fg);color:var(--bg);padding:10px 20px;border-radius:99px;font-weight:800;box-shadow:var(--shadow);animation:slidein .3s both;max-width:90vw;text-align:center}
+.confetti{position:fixed;inset:0;z-index:60;pointer-events:none}
+.demo{background:color-mix(in srgb,var(--sun) 20%,transparent);border:1px dashed var(--sun);border-radius:16px;padding:8px 14px;font-size:.85rem}
+details summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center}
+.sub-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.divider{height:1px;background:var(--line);margin:4px 0}
+@media (max-width:380px){.dimrow{grid-template-columns:92px 1fr 32px}.grid3{gap:6px}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.aurora i,.logo{animation:none!important}.draw{stroke-dashoffset:0}}
+</style>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div id="app" dir="rtl" lang="fa"></div>
+<script>
+/*LOGIC_START*/
+const FA='۰۱۲۳۴۵۶۷۸۹';
+const fa=n=>String(n).replace(/\d/g,d=>FA[d]);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SUBJECTS=['ریاضی','علوم و فنون','جامعه‌شناسی','روانشناسی','عربی','تاریخ و جغرافیا','فلسفه و منطق','اقتصاد'];
+const EMO=[{id:1,n:'اضطراب',e:'😰',c:'--coral'},{id:2,n:'اعتماد به نفس',e:'😎',c:'--mint'},{id:3,n:'ناامیدی',e:'😞',c:'--sky'},{id:4,n:'بی‌حوصلگی',e:'🥱',c:'--sand'},{id:5,n:'هیجان و انگیزه',e:'🤩',c:'--sun'},{id:6,n:'خشم و کلافگی',e:'😤',c:'--red'},{id:7,n:'گیجی',e:'😵‍💫',c:'--acc-soft'},{id:8,n:'آرامش',e:'😌',c:'--teal'}];
+const PHYS=[{id:'heart',n:'تپش قلب',e:'💓'},{id:'sweat',n:'عرق کردن',e:'💦'},{id:'head',n:'سردرد',e:'🤕'},{id:'tired',n:'خستگی شدید',e:'😴'},{id:'scatter',n:'پراکندگی تمرکز',e:'🌀'},{id:'none',n:'هیچ‌کدام',e:'✅'}];
+const PEAK=[{id:'start',n:'ابتدا'},{id:'mid',n:'میانه'},{id:'end',n:'پایان'}];
+const REACT=[{id:1,n:'روی سؤال ماندم تا حل شود'},{id:2,n:'رهایش کردم و رفتم جلو'},{id:3,n:'بدون فکر حدس زدم'},{id:4,n:'با حذف گزینه حدس زدم'},{id:5,n:'از این سؤال به آن سؤال پریدم'},{id:6,n:'عجله کردم و تند شدم'},{id:7,n:'کند شدم و گیر کردم'},{id:8,n:'بی‌خیال شدم'}];
+const COPE=[{id:'breath',n:'نفس عمیق',e:'🌬️'},{id:'elim',n:'حذف گزینه‌ها',e:'✂️'},{id:'time',n:'مدیریت زمان',e:'⏱️'},{id:'easy',n:'سراغ سؤال آسان‌تر',e:'🪜'},{id:'talk',n:'گفتگوی درونی مثبت',e:'💬'},{id:'none',n:'راهبردی نداشتم',e:'🤷'}];
+const THOUGHTS=[{id:'cant',n:'«من نمی‌تونم»'},{id:'fast',n:'«همه زودتر از من تموم کردن»'},{id:'forgot',n:'«این رو که بلد بودم، چرا یادم نمیاد؟»'},{id:'time',n:'«وقت ندارم»'},{id:'bad',n:'«نتیجه‌ام بد میشه»'}];
+const PRE=[{k:'sleep',n:'کیفیت خواب شب قبل',a:'بد',b:'عالی'},{k:'prep',n:'آمادگی درسی که حس می‌کردم',a:'کم',b:'زیاد'},{k:'stress',n:'استرس قبل از شروع آزمون',a:'کم',b:'زیاد'},{k:'energy',n:'انرژی و تمرکز در شروع آزمون',a:'کم',b:'زیاد'}];
+const TRACKS=[
+ {id:'human',n:'انسانی',e:'📚',books:[['ریاضی','علوم و فنون','جامعه‌شناسی','روانشناسی'],['عربی','تاریخ و جغرافیا','فلسفه و منطق','اقتصاد']]},
+ {id:'math',n:'ریاضی',e:'📐',books:[['حسابان','آمار و احتمال','هندسه'],['فیزیک','شیمی']]},
+ {id:'exp',n:'تجربی',e:'🧪',books:[['زیست'],['فیزیک','شیمی'],['ریاضی','زمین‌شناسی']]}];
+const allSubs=t=>{const T=TRACKS.find(x=>x.id===t);return T?[].concat(...T.books):[]};
+const bookOf=(t,s)=>{const T=TRACKS.find(x=>x.id===t);return T?T.books.findIndex(b=>b.includes(s))+1:0};
+const DIMS=[
+ {k:'emo',n:'فشار هیجانی',c:'--coral',d:'اضطراب، نشانه‌های بدنی و سؤال‌هایی که بلد بودی ولی حل نشد'},
+ {k:'focus',n:'افت تمرکز',c:'--sky',d:'پراکندگی ذهن و دیر برگشتن تمرکز'},
+ {k:'time',n:'مدیریت زمان',c:'--sun',d:'سؤال‌های وقت‌گیر، عجله یا کند شدن'},
+ {k:'react',n:'واکنش و راهبرد',c:'--acc-soft',d:'رها شدن، حدس بی‌هدف، نبود راهبرد و اثر دومینو'},
+ {k:'know',n:'غافلگیری و آمادگی',c:'--mint',d:'سؤال‌های غافلگیرکننده و حدس‌های زیاد'}];
+const ERR=[{k:'ign',n:'نادانی',c:'--sky'},{k:'emo',n:'خطای هیجانی',c:'--coral'},{k:'time',n:'خطای زمان',c:'--sun'},{k:'care',n:'بی‌دقتی',c:'--mint'}];
+const TIPS={
+ emo:'پیش از شروع هر درس سه نفس بگیر: ۴ ثانیه دم، ۶ ثانیه بازدم. برای لحظه‌های اضطراب یک جملهٔ آماده داشته باش، مثلاً «این سؤال را رد می‌کنم و برمی‌گردم».',
+ focus:'هر ۲۵ تا ۳۰ دقیقه یک ریست ده‌ثانیه‌ای (چشم و شانه) بزن. بعد از سؤال سخت، یک سؤال آسان حل کن تا تمرکزت برگردد.',
+ time:'برای هر سؤال یک سقف زمانی بگذار. اگر از آن گذشت، علامت بزن و برو جلو؛ در ۵ دقیقهٔ آخر برگرد.',
+ react:'قبل از آزمون بعد یک راهبرد را تمرین کن: حذف گزینه، علامت‌گذاری و بازگشت، یا بازبینی ۵ دقیقهٔ آخر.',
+ know:'سؤال‌های غافلگیرکننده را در یک دفتر خطا بنویس و مبحثشان را قبل از آزمون بعد مرور کن.'};
+const emoOf=id=>EMO.find(e=>e.id===id);
+const emoName=id=>{const e=emoOf(id);return e?e.n:''};
+const dimOf=k=>DIMS.find(d=>d.k===k);
+const avg5=d=>Math.round((d.emo+d.focus+d.time+d.react+d.know)/5);
+
+function scoreSubject(s,pre,sa){
+  const neg=[1,3,6,7].includes(s.emo)?s.int/5:(s.emo===4?0.4*s.int/5:0);
+  const physN=(s.phys||[]).filter(p=>['heart','sweat','head'].includes(p)).length;
+  const phys=Math.min(physN/3,1);
+  const stress=pre&&pre.stress?(pre.stress-1)/4:0;
+  const ev=s.ev||{surp:0,knew:0,slow:0,env:0};
+  const knew=Math.min(ev.knew/5,1);
+  const emo=100*(0.45*neg+0.25*phys+0.1*stress+0.2*knew);
+  const scat=(s.phys||[]).includes('scatter')||(s.phys||[]).includes('tired')?1:0;
+  const focus=100*(0.5*(5-s.focus)/4+0.3*Math.min((s.rec||0)/15,1)+0.2*scat);
+  const time=100*(0.6*Math.min(ev.slow/5,1)+0.25*([6,7].includes(s.react)?1:0)+0.15*Math.min(ev.env/3,1));
+  const wk={no:1,part:0.5,yes:0}[s.worked]||0;
+  const reactS=100*(0.35*([3,5,6,8].includes(s.react)?1:(s.react===2?0.3:0))+0.25*(s.cope==='none'?1:0)+0.2*wk+0.2*(s.domino?1:0));
+  const guessR=sa?sa.guess/Math.max(1,sa.sure+sa.hes+sa.guess):0;
+  const know=100*(0.6*Math.min(ev.surp/5,1)+0.4*guessR);
+  return {emo:Math.round(emo),focus:Math.round(focus),time:Math.round(time),react:Math.round(reactS),know:Math.round(know)};
+}
+function dominantOf(d){let k=null,v=-1;for(const x of ['emo','focus','time','react','know']){if(d[x]>v){v=d[x];k=x;}}return v<25?null:k;}
+function levelOf(t){return t<15?'آرام':t<28?'قابل‌مدیریت':t<40?'پرچالش':'پرفشار';}
+function examDims(ex){
+  const subs=ex.subjects.filter(s=>ex.ans&&ex.ans[s]);
+  const per={},sum={emo:0,focus:0,time:0,react:0,know:0};
+  subs.forEach(s=>{const d=scoreSubject(ex.ans[s],ex.pre,ex.sa&&ex.sa[s]);per[s]=d;for(const k in sum)sum[k]+=d[k];});
+  const n=subs.length||1,overall={};
+  for(const k in sum)overall[k]=Math.round(sum[k]/n);
+  const total=Math.round(Object.values(overall).reduce((a,b)=>a+b,0)/5);
+  const tally={};subs.forEach(s=>{const a=ex.ans[s];tally[a.emo]=(tally[a.emo]||0)+a.int;});
+  let top=null,tv=-1;for(const k in tally)if(tally[k]>tv){tv=tally[k];top=+k;}
+  return {per,overall,total,dom:dominantOf(overall),emo:top,subs};
+}
+function resultStats(ex){
+  if(!ex.res)return null;
+  const per={},err={ign:0,emo:0,time:0,care:0};let ps=0,as=0,n=0;
+  ex.subjects.forEach(s=>{
+    const r=ex.res[s],sa=ex.sa&&ex.sa[s];if(!r)return;
+    const gap=sa?sa.pred-r.actual:null;
+    per[s]={actual:r.actual,pred:sa?sa.pred:null,gap,
+      sureAcc:sa&&sa.sure?Math.round(100*r.sureOk/sa.sure):null,
+      guessAcc:sa&&sa.guess?Math.round(100*r.guessOk/sa.guess):null,
+      calib:gap==null?null:(gap>10?'over':gap<-10?'under':'ok')};
+    for(const k in err)err[k]+=(r.err&&r.err[k])||0;
+    if(sa){ps+=sa.pred;as+=r.actual;n++;}
+  });
+  const wrong=Object.values(err).reduce((a,b)=>a+b,0);
+  let top=null,tv=0;for(const k in err)if(err[k]>tv){tv=err[k];top=k;}
+  return {per,err,wrong,topErr:top,gapAvg:n?Math.round((ps-as)/n):null};
+}
+function buildInsights(cur,prev,hist){
+  const out=[],C=examDims(cur);
+  if(prev){
+    const P=examDims(prev),dt=C.total-P.total;
+    out.push({k:dt<=-3?'good':dt>=3?'bad':'info',t:Math.abs(dt)<3?'شاخص کلی دشواری هیجانی تقریباً ثابت ماند ('+fa(P.total)+' ← '+fa(C.total)+')':'شاخص کلی دشواری هیجانی از '+fa(P.total)+' به '+fa(C.total)+' رسید'});
+    DIMS.forEach(d=>{const x=C.overall[d.k]-P.overall[d.k];if(Math.abs(x)>=8)out.push({k:x<0?'good':'bad',t:d.n+' نسبت به آزمون قبل '+fa(Math.abs(x))+' واحد '+(x<0?'کمتر':'بیشتر')+' شد'});});
+    if(P.emo&&C.emo&&P.emo!==C.emo)out.push({k:'info',t:'هیجان غالب از «'+emoName(P.emo)+'» به «'+emoName(C.emo)+'» تغییر کرد'});
+    const ch=[];C.subs.forEach(s=>{if(P.per[s])ch.push({s,d:avg5(C.per[s])-avg5(P.per[s])});});
+    ch.sort((a,b)=>a.d-b.d);
+    if(ch.length){const b=ch[0],w=ch[ch.length-1];
+      if(b.d<=-8)out.push({k:'good',t:'بیشترین بهبود در «'+b.s+'» بود ('+fa(Math.abs(b.d))+' واحد کمتر)'});
+      if(w.d>=8)out.push({k:'bad',t:'بیشترین افت در «'+w.s+'» بود ('+fa(w.d)+' واحد بیشتر)'});}
+  }
+  const idx=hist.findIndex(e=>e.id===cur.id);
+  C.subs.forEach(s=>{
+    const dm=dominantOf(C.per[s]);if(!dm)return;
+    let n=1;
+    for(let i=idx-1;i>=0;i--){const e=hist[i];if(!e.ans||!e.ans[s])break;const d=dominantOf(scoreSubject(e.ans[s],e.pre,e.sa&&e.sa[s]));if(d!==dm)break;n++;}
+    if(n>=2)out.push({k:'bad',t:'در «'+s+'»، «'+dimOf(dm).n+'» '+fa(n)+' آزمون پیاپی علت غالب بوده'});
+  });
+  return out;
+}
+/*LOGIC_END*/
+
+/* ---------- storage ---------- */
+let mem=null;
+function load(){try{const r=localStorage.getItem('ayene.v1');if(r)return JSON.parse(r);}catch(e){}return mem;}
+function persist(){try{localStorage.setItem('ayene.v1',JSON.stringify(DB));}catch(e){}mem=DB;}
+let DB=load()||{students:[],exams:[],draft:null,seeded:false};
+const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const buzz=(n=8)=>{try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+const pad=n=>String(n).padStart(2,'0');
+const isoOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayISO=()=>isoOf(new Date());
+const daysAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return isoOf(d)};
+function fdate(iso,short){try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',short?{month:'short',day:'numeric'}:{year:'numeric',month:'long',day:'numeric'}).format(new Date(iso+'T12:00:00'));}catch(e){return fa(iso);}}
+function newCode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c;do{c='';for(let i=0;i<6;i++)c+=A[Math.floor(Math.random()*A.length)];c=c.slice(0,3)+'-'+c.slice(3);}while(DB.students.some(s=>s.id===c));return c;}
+const hue=s=>{let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))%360;return h};
+const avatarBg=s=>{const h=hue(s);return 'linear-gradient(135deg,hsl('+h+' 80% 55%),hsl('+((h+50)%360)+' 85% 60%))'};
+const initial=n=>(n.trim()[0]||'؟');
+const examsOf=sid=>DB.exams.filter(e=>e.sid===sid).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.created-b.created);
+const stuOf=id=>DB.students.find(s=>s.id===id);
+
+/* ---------- demo data ---------- */
+function seedDemo(){
+  const A=(emo,int,peak,phys,focus,ev,react,cope,worked,rec,domino,review)=>({emo,int,peak,phys,focus,ev:{surp:ev[0],knew:ev[1],slow:ev[2],env:ev[3]},react,cope,worked,rec,domino,review});
+  const S='SRA-482';
+  DB.students.push({id:S,name:'سارا (نمونهٔ نمایشی)',grade:'11',demo:true,created:Date.now()});
+  const E=(i,date,title,pre,subjects,ans,thoughts,sa,res)=>DB.exams.push({id:'demo'+i,sid:S,track:'human',skipped:[],title,date,pre,subjects,ans,thoughts,other:'',hardest:'',sa,res,reason:'',created:Date.now()+i});
+  const subs=['ریاضی','علوم و فنون','عربی','فلسفه و منطق'];
+  E(1,daysAgo(70),'آزمون شمارهٔ ۱',{sleep:2,prep:2,stress:5,energy:2,body:'کمی خسته بودم و صبحانه نخورده بودم'},subs,{
+    'ریاضی':A(1,5,'start',['heart','sweat'],2,[3,4,4,1],6,'none','no',12,true,'no'),
+    'علوم و فنون':A(7,3,'mid',['scatter'],3,[2,2,2,0],5,'elim','part',6,false,'part'),
+    'عربی':A(2,3,'mid',['none'],4,[1,1,1,0],4,'elim','yes',2,false,'full'),
+    'فلسفه و منطق':A(3,4,'end',['tired','scatter'],2,[2,3,3,2],8,'none','no',10,true,'no')},
+    ['cant','time','bad'],
+    {'ریاضی':{pred:70,sure:12,hes:10,guess:8},'علوم و فنون':{pred:60,sure:14,hes:8,guess:8},'عربی':{pred:70,sure:18,hes:8,guess:4},'فلسفه و منطق':{pred:60,sure:10,hes:10,guess:10}},
+    {'ریاضی':{actual:38,sureOk:7,guessOk:2,err:{ign:8,emo:12,time:6,care:4}},'علوم و فنون':{actual:46,sureOk:10,guessOk:2,err:{ign:9,emo:6,time:3,care:5}},'عربی':{actual:64,sureOk:15,guessOk:1,err:{ign:5,emo:2,time:1,care:4}},'فلسفه و منطق':{actual:35,sureOk:6,guessOk:3,err:{ign:10,emo:7,time:5,care:3}}});
+  E(2,daysAgo(35),'آزمون شمارهٔ ۲',{sleep:3,prep:3,stress:4,energy:3,body:'کمی خسته بودم و صبحانه نخورده بودم'},subs,{
+    'ریاضی':A(1,4,'start',['heart'],3,[2,3,3,0],5,'breath','part',6,true,'part'),
+    'علوم و فنون':A(4,2,'mid',['none'],4,[1,1,2,0],4,'elim','yes',3,false,'full'),
+    'عربی':A(2,4,'mid',['none'],4,[0,1,1,0],4,'elim','yes',1,false,'full'),
+    'فلسفه و منطق':A(7,3,'mid',['scatter'],3,[2,2,3,1],2,'easy','part',7,false,'part')},
+    ['cant','time'],
+    {'ریاضی':{pred:60,sure:14,hes:10,guess:6},'علوم و فنون':{pred:65,sure:18,hes:8,guess:4},'عربی':{pred:75,sure:22,hes:6,guess:2},'فلسفه و منطق':{pred:55,sure:12,hes:10,guess:8}},
+    {'ریاضی':{actual:52,sureOk:11,guessOk:2,err:{ign:7,emo:8,time:4,care:3}},'علوم و فنون':{actual:60,sureOk:15,guessOk:1,err:{ign:6,emo:3,time:2,care:3}},'عربی':{actual:74,sureOk:20,guessOk:1,err:{ign:3,emo:1,time:0,care:3}},'فلسفه و منطق':{actual:48,sureOk:9,guessOk:3,err:{ign:8,emo:4,time:4,care:3}}});
+  E(3,daysAgo(7),'آزمون شمارهٔ ۳',{sleep:4,prep:3,stress:3,energy:4,body:'حالم خوب بود'},subs,{
+    'ریاضی':A(1,3,'start',['none'],4,[1,2,2,0],4,'breath','yes',3,false,'full'),
+    'علوم و فنون':A(2,3,'mid',['none'],4,[1,0,1,0],4,'elim','yes',1,false,'full'),
+    'عربی':A(8,2,'mid',['none'],5,[0,0,1,0],4,'time','yes',0,false,'full'),
+    'فلسفه و منطق':A(7,4,'mid',['scatter','tired'],2,[3,2,4,1],7,'none','no',9,true,'no')},
+    ['time'],
+    {'ریاضی':{pred:65,sure:18,hes:8,guess:4},'علوم و فنون':{pred:70,sure:20,hes:7,guess:3},'عربی':{pred:80,sure:24,hes:4,guess:2},'فلسفه و منطق':{pred:50,sure:10,hes:10,guess:10}},
+    null);
+}
+if(!DB.seeded){seedDemo();DB.seeded=true;persist();}
+
+/* ---------- ui state ---------- */
+let ui={view:'home',sid:null,eid:null,step:0,dim:'all',q:'',fresh:false,rs:null,confirm:null};
+const stack=[];
+const app=document.getElementById('app');
+const $=(s,r=document)=>r.querySelector(s);
+function toast(t){document.querySelectorAll('.toast').forEach(x=>x.remove());const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2400);}
+function go(view,extra){stack.push(Object.assign({},ui));ui=Object.assign({},ui,{view,step:0,fresh:false,confirm:null},extra||{});try{history.pushState({n:stack.length},'','#s'+stack.length);}catch(e){}render(true);}
+function goBack(){
+  if(ui.view==='wiz'){if(ui.step>0){ui.step--;render(true);return;}toast('پیش‌نویس ذخیره شد');}
+  if(ui.view==='res'){if(ui.step>0){ui.step--;render(true);return;}}
+  if(stack.length){ui=stack.pop();ui.confirm=null;}else{ui=Object.assign({},ui,{view:'home',confirm:null});}
+  render(true);
+}
+window.addEventListener('popstate',()=>goBack());
+
+/* ---------- shared pieces ---------- */
+const getP=(o,p)=>p.split('|').reduce((a,k)=>a==null?a:a[k],o);
+function setP(o,p,v){const ks=p.split('|');let a=o;for(let i=0;i<ks.length-1;i++){if(a[ks[i]]==null)a[ks[i]]={};a=a[ks[i]];}a[ks[ks.length-1]]=v;}
+function seg(path,cur,items){return '<div class="seg">'+items.map(i=>'<button class="'+(cur===i.v?'sel':'')+'" data-a="set" data-p="'+esc(path)+'" data-v="'+i.v+'" data-t="'+(typeof i.v)+'">'+esc(i.l)+'</button>').join('')+'</div>';}
+function rating(path,cur,a,b){return seg(path,cur,[1,2,3,4,5].map(n=>({v:n,l:fa(n)})))+'<div class="scale"><span>'+esc(a)+'</span><span>'+esc(b)+'</span></div>';}
+function stepper(path,v,min,max,label,hint){return '<div class="step"><div class="grow"><div style="font-weight:800">'+label+'</div>'+(hint?'<div class="muted tiny">'+hint+'</div>':'')+'</div><button class="btn ghost" data-a="step" data-p="'+esc(path)+'" data-d="-1" data-min="'+min+'" data-max="'+max+'" aria-label="کم کن">−</button><b>'+fa(v||0)+'</b><button class="btn" data-a="step" data-p="'+esc(path)+'" data-d="1" data-min="'+min+'" data-max="'+max+'" aria-label="زیاد کن">+</button></div>';}
+function badgeDim(k){if(!k)return '<span class="badge" style="--c:var(--mint)">متعادل</span>';const d=dimOf(k);return '<span class="badge" style="--c:var('+d.c+')">'+d.n+'</span>';}
+function ring(total){const C=326.7,off=C*(1-Math.min(total,60)/60),col=total<15?'--mint':total<28?'--sky':total<40?'--sun':'--coral';
+  return '<div class="ringbox"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52" fill="none" stroke-width="12"/><circle class="ring-fg" cx="60" cy="60" r="52" fill="none" stroke-width="12" stroke-linecap="round" style="stroke:var('+col+')" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'" data-off="'+off.toFixed(1)+'"/></svg><div class="n" data-count="'+total+'">'+fa(total)+'</div></div>';}
+function meter(label,v,c){return '<div class="dimrow"><span>'+label+'</span><div class="meter" style="--c:var('+c+')"><i data-w="'+clamp(v,0,100)+'"></i></div><b>'+fa(v)+'</b></div>';}
+
+/* ---------- home ---------- */
+function studentCard(s){
+  const ex=examsOf(s.id),last=ex[ex.length-1];let info='<span class="muted tiny">هنوز آزمونی ثبت نشده</span>',tr='';
+  if(last){const D=examDims(last);info=badgeDim(D.dom);
+    if(ex.length>1){const P=examDims(ex[ex.length-2]),dt=D.total-P.total;tr=Math.abs(dt)<3?'<span class="muted">→ ثابت</span>':dt<0?'<span style="color:var(--mint)">↘ بهتر شد</span>':'<span style="color:var(--coral)">↗ سخت‌تر شد</span>';}}
+  return '<button class="card sc" data-a="open" data-id="'+esc(s.id)+'"><span class="avatar" style="background:'+avatarBg(s.id)+'">'+esc(initial(s.name))+'</span><span class="grow"><b>'+esc(s.name)+'</b><br><span class="code">'+esc(s.id)+'</span> <span class="muted tiny">· '+fa(ex.length)+' آزمون'+(s.grade?' · پایهٔ '+fa(s.grade):'')+'</span></span><span class="small" style="text-align:end">'+info+'<br>'+tr+'</span></button>';
+}
+function studentList(){
+  const q=(ui.q||'').trim().toUpperCase().replace(/-/g,'');
+  const list=DB.students.filter(s=>!q||s.name.toUpperCase().includes(q)||s.id.replace(/-/g,'').includes(q));
+  if(!list.length)return '<div class="card muted" style="text-align:center">'+(DB.students.length?'دانش‌آموزی با این نام یا کد پیدا نشد.':'هنوز دانش‌آموزی اضافه نکرده‌ای. با «دانش‌آموز جدید» شروع کن؛ برای هر نفر یک کد یکتا ساخته می‌شود.')+'</div>';
+  return list.map(studentCard).join('');
+}
+function vHome(){
+  const d=DB.draft,ds=d&&stuOf(d.sid);
+  return '<div class="enter stack">'
+  +'<div class="brand"><div class="logo"><b></b></div><div><h1>آینه آزمون</h1><div class="muted small">هر آزمون، یک آینهٔ کوچک برای دیدن حال دانش‌آموز</div></div></div>'
+  +(d?'<div class="card row"><div class="grow"><b>پرسشنامهٔ نیمه‌کاره</b><div class="muted small">'+(ds?esc(ds.name):(d.nw&&d.nw.name?esc(d.nw.name):'دانش‌آموز انتخاب نشده'))+'</div></div><button class="btn small" data-a="resume">ادامه</button><button class="btn ghost small" data-a="discard">حذف</button></div>':'')
+  +'<div class="hero stack"><div><h2>پرسشنامهٔ هیجانی جدید</h2><div style="opacity:.9" class="small">حدود ۵ تا ۷ دقیقه · فقط چند لمس ساده</div></div><div class="row"><button class="btn" data-a="newq">شروع پرسشنامه ✨</button></div></div>'
+  +'<div class="row"><button class="btn ghost grow" data-a="newstu">+ دانش‌آموز جدید</button><button class="btn ghost" data-a="backup">پشتیبان‌گیری</button></div>'
+  +'<input class="input" id="q" data-in="search" placeholder="جستجو با نام یا کد دانش‌آموز" value="'+esc(ui.q)+'" inputmode="search" autocomplete="off">'
+  +'<div id="slist">'+studentList()+'</div></div>';
+}
+function vNewStu(){
+  const d=ui.ns||{name:'',grade:''};
+  return '<div class="enter stack"><div class="top"><button class="icon" data-a="back" aria-label="بازگشت">→</button><h2>دانش‌آموز جدید</h2></div>'
+  +'<div class="card stack"><div><label class="lb" for="nsn">نام و نام خانوادگی</label><input class="input" id="nsn" data-in="nsname" value="'+esc(d.name)+'" autocomplete="off"></div>'
+  +'<div><label class="lb">پایه</label><div class="chips">'+[7,8,9,10,11,12].map(g=>'<button class="chip '+(String(d.grade)===String(g)?'sel':'')+'" data-a="nsgrade" data-v="'+g+'">'+fa(g)+'</button>').join('')+'</div></div></div>'
+  +'<button class="btn block" data-a="nssave">ساخت کد دانش‌آموز</button></div>';
+}
+
+/* ---------- student ---------- */
+function trendSVG(exams,key){
+  const vals=exams.map(e=>{const D=examDims(e);return key==='all'?D.total:D.overall[key];});
+  const col=key==='all'?'--acc-soft':dimOf(key).c;
+  const W=320,H=180,L=30,R=18,T=18,B=34;
+  if(vals.length<2)return '<div class="muted small" style="text-align:center;padding:18px 0">برای دیدن روند، حداقل دو آزمون لازم است. فعلاً مقدار: <b>'+fa(vals[0]||0)+'</b></div>';
+  const mx=clamp(Math.ceil((Math.max(...vals)+8)/10)*10,40,100),n=vals.length;
+  const X=i=>W-R-i*(W-L-R)/(n-1),Y=v=>T+(1-v/mx)*(H-T-B);
+  const pts=vals.map((v,i)=>[X(i),Y(v)]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+' L'+pts[n-1][0].toFixed(1)+' '+(H-B)+' L'+pts[0][0].toFixed(1)+' '+(H-B)+' Z';
+  let g='';[0,mx/2,mx].forEach(v=>{g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)" stroke-dasharray="3 4"/><text x="'+(L-6)+'" y="'+(Y(v)+3)+'" text-anchor="end">'+fa(Math.round(v))+'</text>';});
+  let dots='',lbl='';
+  pts.forEach((p,i)=>{const last=i===n-1;dots+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(last?6:4)+'" style="fill:var('+col+');stroke:var(--bg);stroke-width:2"/>';
+    dots+='<text class="vt" x="'+p[0].toFixed(1)+'" y="'+(p[1]-10).toFixed(1)+'" text-anchor="middle">'+fa(vals[i])+'</text>';
+    if(n<=6||i%2===0)lbl+='<text x="'+p[0].toFixed(1)+'" y="'+(H-12)+'" text-anchor="middle">'+fdate(exams[i].date,true)+'</text>';});
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="نمودار روند"><defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var('+col+');stop-opacity:.35"/><stop offset="1" style="stop-color:var('+col+');stop-opacity:0"/></linearGradient></defs>'+g+'<path d="'+area+'" fill="url(#ga)"/><path class="draw" d="'+line+'" fill="none" style="stroke:var('+col+')" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" pathLength="1200"/>'+dots+lbl+'</svg>';
+}
+function heatmap(exams){
+  const subs=[];exams.forEach(e=>e.subjects.forEach(s=>{if(!subs.includes(s))subs.push(s);}));
+  let h='<table class="heat"><thead><tr><th></th>'+exams.map(e=>'<th>'+fdate(e.date,true)+'</th>').join('')+'</tr></thead><tbody>';
+  subs.forEach(s=>{h+='<tr><th>'+esc(s)+'</th>';exams.forEach(e=>{
+    if(!e.ans||!e.ans[s]){h+='<td></td>';return;}
+    const d=scoreSubject(e.ans[s],e.pre,e.sa&&e.sa[s]),dm=dominantOf(d);
+    h+=dm?'<td class="c" style="--c:var('+dimOf(dm).c+');--k:'+clamp(30+d[dm],30,85)+'" title="'+dimOf(dm).n+'">'+fa(avg5(d))+'</td>':'<td class="c" style="--c:var(--mint);--k:30">'+fa(avg5(d))+'</td>';});h+='</tr>';});
+  return h+'</tbody></table>';
+}
+function vStudent(){
+  const s=stuOf(ui.sid);if(!s)return vHome();
+  const ex=examsOf(s.id),last=ex[ex.length-1];
+  const chips=[{k:'all',n:'کل'}].concat(DIMS.map(d=>({k:d.k,n:d.n})));
+  let h='<div class="enter stack"><div class="top"><button class="icon" data-a="back" aria-label="بازگشت">→</button><div class="grow"><h2>'+esc(s.name)+'</h2></div></div>'
+  +(s.demo?'<div class="demo">این دانش‌آموز فقط نمونهٔ نمایشی است تا کار برنامه را ببینی. هر وقت خواستی حذفش کن.</div>':'')
+  +'<div class="card row"><span class="avatar" style="background:'+avatarBg(s.id)+'">'+esc(initial(s.name))+'</span><div class="grow"><div class="muted small">کد دانش‌آموز</div><span class="code" style="font-size:1.1rem">'+esc(s.id)+'</span></div><button class="btn ghost small" data-a="copy" data-v="'+esc(s.id)+'">کپی کد</button></div>'
+  +'<button class="btn block" data-a="newq" data-id="'+esc(s.id)+'">آزمون جدید برای '+esc(s.name.split(' ')[0])+' ✨</button>';
+  if(!ex.length){h+='<div class="card muted" style="text-align:center">هنوز آزمونی ثبت نشده است.</div>';}
+  else{
+    h+='<div class="card stack"><h3>روند در آزمون‌ها</h3><div class="chips">'+chips.map(c=>'<button class="chip '+(ui.dim===c.k?'sel':'')+'" data-a="dim" data-v="'+c.k+'">'+c.n+'</button>').join('')+'</div><div id="trend">'+trendSVG(ex,ui.dim)+'</div><div class="muted tiny">عدد کمتر یعنی آزمون با فشار کمتر. قدیمی‌ترین آزمون سمت راست است.</div></div>';
+    if(ex.length>1){const ins=buildInsights(last,ex[ex.length-2],ex).filter(i=>i.k!=='info'||true);h+='<div class="card"><h3>آخرین آزمون نسبت به قبل</h3>'+insightsHTML(ins)+'</div>';}
+    h+='<div class="card stack"><h3>نقشهٔ علت‌ها</h3><div class="scroll-x">'+heatmap(ex)+'</div><div class="legend">'+DIMS.map(d=>'<span style="--c:var('+d.c+')">'+d.n+'</span>').join('')+'</div><div class="muted tiny">رنگ هر خانه علت غالب آن درس است و عدد آن، شدت کلی.</div></div>';
+    h+='<h3>آزمون‌ها</h3>'+ex.slice().reverse().map(e=>{const D=examDims(e);return '<button class="card sc" data-a="report" data-id="'+e.id+'"><span class="grow"><b>'+esc(e.title)+'</b><br><span class="muted small">'+fdate(e.date)+' · '+fa(e.subjects.length)+' درس</span></span><span class="small" style="text-align:end">'+badgeDim(D.dom)+'<br><span class="'+(e.res?'':'muted')+'">'+(e.res?'✓ نتیجه ثبت شد':'نتیجه ثبت نشده')+'</span></span></button>';}).join('');
+  }
+  h+='<div class="divider"></div>'+(ui.confirm==='del'?'<div class="card stack"><b>حذف '+esc(s.name)+' و همهٔ آزمون‌هایش؟</b><div class="row"><button class="btn danger small" data-a="delstu">بله، حذف کن</button><button class="btn ghost small" data-a="cancel">انصراف</button></div></div>':'<button class="btn ghost small" data-a="confirmdel">حذف دانش‌آموز</button>')+'</div>';
+  return h;
+}
+function insightsHTML(ins){
+  if(!ins.length)return '<div class="muted">تغییر قابل‌توجهی دیده نشد.</div>';
+  return ins.map(i=>'<div class="ins" style="--c:var('+(i.k==='good'?'--mint':i.k==='bad'?'--coral':'--sky')+')"><i>'+(i.k==='good'?'↘':i.k==='bad'?'↗':'•')+'</i><div>'+esc(i.t)+'</div></div>').join('');
+}
+
+/* ---------- report ---------- */
+function vReport(){
+  const ex=DB.exams.find(e=>e.id===ui.eid);if(!ex)return vHome();
+  const s=stuOf(ex.sid),hist=examsOf(ex.sid),i=hist.findIndex(e=>e.id===ex.id),prev=i>0?hist[i-1]:null;
+  const D=examDims(ex),R=resultStats(ex),ins=buildInsights(ex,prev,hist);
+  const dd=D.dom?dimOf(D.dom):null,em=D.emo?emoOf(D.emo):null;
+  let h='<div class="enter stack"><div class="top"><button class="icon" data-a="back" aria-label="بازگشت">→</button><div class="grow"><h2>'+esc(ex.title)+'</h2><div class="muted small">'+(s?esc(s.name)+' · ':'')+fdate(ex.date)+'</div></div></div>';
+  if(ui.fresh)h+='<div class="hero"><h2>پرسشنامه ثبت شد 🎉</h2><div class="small" style="opacity:.92">این تحلیل همین حالا از پاسخ‌ها ساخته شد. نتیجهٔ کارنامه را بعداً اضافه کن تا تحلیل کامل‌تر شود.</div></div>';
+  h+='<div class="card row" style="gap:16px">'+ring(D.total)+'<div class="grow stack" style="gap:6px"><div class="muted small">سطح فشار این آزمون</div><div class="big">'+levelOf(D.total)+'</div><div>'+(dd?'علت غالب: <span class="badge" style="--c:var('+dd.c+')">'+dd.n+'</span>':'<span class="badge" style="--c:var(--mint)">وضعیت متعادل</span>')+'</div>'+(em?'<div class="small muted">هیجان غالب: '+em.e+' '+em.n+'</div>':'')+'</div></div>';
+  if(dd)h+='<div class="card small muted">'+esc(dd.d)+'</div>';
+  const pb=typeof ex.pre.body==='string'?ex.pre.body.trim():'',pn=(ex.pre.note||'').trim();
+  if(pb||pn)h+='<div class="card stack"><h3>پیش از آزمون</h3>'+(pb?'<div><div class="muted small">وضعیت جسمی</div>'+esc(pb)+'</div>':'')+(pn?'<div><div class="muted small">اتفاق‌هایی که روی حالش اثر گذاشت</div>'+esc(pn)+'</div>':'')+'</div>';
+  if(ex.skipped&&ex.skipped.length)h+='<div class="card small"><span class="muted">درس‌های ردشده:</span> '+ex.skipped.map(esc).join('، ')+'</div>';
+  h+='<div class="card stack"><h3>پنج بُعد علت</h3>'+DIMS.map(d=>meter(d.n,D.overall[d.k],d.c)).join('')+'</div>';
+  if(prev)h+='<div class="card"><h3>مقایسه با «'+esc(prev.title)+'»</h3>'+insightsHTML(ins)+'</div>';
+  else if(ins.length)h+='<div class="card"><h3>نکته‌ها</h3>'+insightsHTML(ins)+'</div>';
+  h+='<h3>درس به درس</h3>'+D.subs.map(sub=>{const d=D.per[sub],a=ex.ans[sub],e=emoOf(a.emo),dm=dominantOf(d);
+    return '<div class="card stack" style="gap:10px"><div class="row"><b class="grow">'+esc(sub)+(bookOf(ex.track,sub)?' <span class="muted tiny">· دفترچه '+fa(bookOf(ex.track,sub))+'</span>':'')+'</b>'+(e?'<span class="badge" style="--c:var('+e.c+')">'+e.e+' '+e.n+' · '+fa(a.int)+'/۵</span>':'')+'</div><div>'+badgeDim(dm)+'</div>'+DIMS.map(x=>meter(x.n,d[x.k],x.c)).join('')+'</div>';}).join('');
+  if(R){
+    h+='<div class="card stack"><h3>پیش‌بینی در برابر واقعیت</h3>'+(R.gapAvg!=null?'<div class="small">میانگین فاصلهٔ پیش‌بینی تا نتیجه: <b>'+fa(Math.abs(R.gapAvg))+' درصد '+(R.gapAvg>10?'خوش‌بینانه‌تر':R.gapAvg<-10?'بدبینانه‌تر':'')+'</b></div>':'')
+    +Object.keys(R.per).map(sub=>{const p=R.per[sub];return '<div class="row"><b class="grow">'+esc(sub)+'</b><span class="small muted">پیش‌بینی '+fa(p.pred)+' ← واقعی '+fa(p.actual)+'</span>'+(p.calib?'<span class="badge" style="--c:var('+(p.calib==='ok'?'--mint':p.calib==='over'?'--coral':'--sky')+')">'+(p.calib==='ok'?'دقیق':p.calib==='over'?'خوش‌بین':'کم‌اعتماد')+'</span>':'')+'</div>'+(p.sureAcc!=null&&p.sureAcc<70?'<div class="tiny muted">فقط '+fa(p.sureAcc)+'٪ از پاسخ‌هایی که مطمئن بودی درست بود.</div>':'');}).join('')+'</div>';
+    if(R.wrong){h+='<div class="card stack"><h3>خطاها چه نوعی بودند؟</h3><div class="stackbar">'+ERR.map(e=>R.err[e.k]?'<i style="--c:var('+e.c+');width:'+(100*R.err[e.k]/R.wrong).toFixed(1)+'%"></i>':'').join('')+'</div><div class="legend">'+ERR.map(e=>'<span style="--c:var('+e.c+')">'+e.n+' '+fa(R.err[e.k])+'</span>').join('')+'</div>'+(R.topErr?'<div class="small">بیشترین سهم: <b>'+ERR.find(e=>e.k===R.topErr).n+'</b> ('+fa(Math.round(100*R.err[R.topErr]/R.wrong))+'٪ از خطاها)</div>':'')+'</div>';}
+  }else{
+    h+='<div class="card stack"><h3>کارنامه آمد؟</h3><div class="muted small">درصد واقعی و نوع خطاها را ثبت کن تا فاصلهٔ پیش‌بینی و علت واقعی خطاها هم تحلیل شود.</div><button class="btn block" data-a="res" data-id="'+ex.id+'">ثبت نتیجه</button></div>';
+  }
+  const tips=DIMS.map(d=>({k:d.k,v:D.overall[d.k]})).filter(x=>x.v>=25).sort((a,b)=>b.v-a.v).slice(0,3);
+  if(R&&R.topErr==='time'&&!tips.some(t=>t.k==='time'))tips.push({k:'time'});
+  if(tips.length)h+='<div class="card stack"><h3>پیشنهاد برای آزمون بعد</h3>'+tips.map((t,n)=>'<div class="ins" style="--c:var('+dimOf(t.k).c+')"><i>'+fa(n+1)+'</i><div><b>'+dimOf(t.k).n+'</b><div class="small muted">'+TIPS[t.k]+'</div></div></div>').join('')+'</div>';
+  if(ex.res)h+='<button class="btn ghost block" data-a="res" data-id="'+ex.id+'">ویرایش نتیجه</button>';
+  h+='<div class="muted tiny" style="text-align:center">این تحلیل یک ابزار ساده برای گفتگوی مشاور با دانش‌آموز است و تشخیص روانشناختی نیست.</div></div>';
+  return h;
+}
+
+/* ---------- wizard ---------- */
+function newDraft(sid){return {sid:sid||null,fixed:!!sid,nw:null,newMode:false,title:'',date:todayISO(),pre:{},track:null,skipped:[],subjects:[],ans:{},thoughts:[],other:'',hardest:'',sa:{}};}
+function stepsFor(d){const s=[];if(!d.fixed)s.push({t:'who'});s.push({t:'exam'},{t:'pre'},{t:'subjects'});d.subjects.forEach(x=>{s.push({t:'a',s:x},{t:'b',s:x});});s.push({t:'thoughts'},{t:'self'});return s;}
+function valid(st,d){
+  if(st.t==='who')return !!d.sid||(d.newMode&&d.nw&&d.nw.name&&d.nw.name.trim());
+  if(st.t==='exam')return !!(d.title&&d.title.trim()&&d.date);
+  if(st.t==='pre')return PRE.every(p=>d.pre[p.k])&&typeof d.pre.body==='string'&&d.pre.body.trim().length>0;
+  if(st.t==='subjects')return !!d.track&&d.subjects.length>0;
+  if(st.t==='a'){const a=d.ans[st.s];return !!(a.emo&&a.int&&a.peak&&a.focus&&a.phys.length);}
+  if(st.t==='b'){const a=d.ans[st.s];return !!(a.react&&a.cope&&(a.cope==='none'||a.worked)&&a.review&&typeof a.domino==='boolean');}
+  return true;
+}
+function wchrome(pct,body,last,showPrev){
+  return '<div class="'+(ui.anim?'enter ':'')+'stack"><div class="wtop"><button class="icon" data-a="wprev" aria-label="قبلی">→</button><div class="prog" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><span class="small muted" style="min-width:36px;text-align:end">'+fa(pct)+'٪</span></div>'+body+'</div>'
+  +'<div class="bar"><div><button class="btn ghost" data-a="wprev">قبلی</button><button class="btn" data-a="wnext" id="nextbtn">'+last+'</button></div></div>';
+}
+function vWiz(){
+  const d=DB.draft;if(!d){ui.view='home';return vHome();}
+  const steps=stepsFor(d);ui.step=clamp(ui.step,0,steps.length-1);
+  const st=steps[ui.step],pct=Math.round(100*ui.step/steps.length),last=ui.step===steps.length-1?'ثبت و دیدن تحلیل 🎉':'بعدی ←';
+  let b='';
+  if(st.t==='who'){
+    b='<div><h2>این پرسشنامه برای کیست؟</h2><div class="muted small">یک دانش‌آموز را انتخاب کن یا با نام و کد جدید بساز.</div></div><input class="input" data-in="wsearch" placeholder="جستجوی نام یا کد" value="'+esc(ui.wq||'')+'" autocomplete="off">'
+    +'<div id="wl">'+whoList(d)+'</div>'
+    +'<button class="tile '+(d.newMode?'sel':'')+'" style="width:100%;min-height:60px;flex-direction:row;gap:10px" data-a="wnew"><span class="em">➕</span> دانش‌آموز جدید</button>'
+    +(d.newMode?'<div class="card stack"><div><label class="lb" for="wnn">نام و نام خانوادگی</label><input class="input" id="wnn" data-in="wnname" value="'+esc(d.nw&&d.nw.name||'')+'" autocomplete="off"></div><div><label class="lb">پایه</label><div class="chips">'+[7,8,9,10,11,12].map(g=>'<button class="chip '+(d.nw&&String(d.nw.grade)===String(g)?'sel':'')+'" data-a="wgrade" data-v="'+g+'">'+fa(g)+'</button>').join('')+'</div></div></div>':'');
+  }else if(st.t==='exam'){
+    b='<div><h2>اول، یک معرفی کوتاه ✍️</h2></div><div class="card stack"><div><label class="lb" for="et">عنوان آزمون</label><input class="input" id="et" data-in="text" data-p="title" value="'+esc(d.title)+'" autocomplete="off"></div><div><label class="lb" for="ed">تاریخ برگزاری</label><input class="input" id="ed" type="date" data-in="text" data-p="date" value="'+esc(d.date)+'"><div class="muted small" id="edp" style="margin-top:6px">'+fdate(d.date)+'</div></div></div>';
+  }else if(st.t==='pre'){
+    b='<div><h2>قبل از شروع آزمون چطور بودی؟</h2><div class="muted small">به هر مورد از ۱ تا ۵ نمره بده.</div></div>'+PRE.map(p=>'<div class="card q"><b>'+p.n+'</b>'+rating('pre|'+p.k,d.pre[p.k],p.a,p.b)+'</div>').join('')
+    +'<div class="card"><label class="lb" for="pb">وضعیت جسمی‌ات قبل از آزمون چطور بود؟</label><textarea class="input" id="pb" data-in="text" data-p="pre|body" placeholder="مثلاً: سردرد داشتم، صبحانه نخورده بودم، خسته بودم یا حالم خوب بود...">'+esc(typeof d.pre.body==='string'?d.pre.body:'')+'</textarea></div>'
+    +'<div class="card"><label class="lb" for="pn">اتفاق خاصی روی حالت اثر گذاشت؟ (اختیاری)</label><textarea class="input" id="pn" data-in="text" data-p="pre|note" placeholder="مثلاً مشکل خانوادگی، دعوا، بی‌خوابی...">'+esc(d.pre.note||'')+'</textarea></div>';
+  }else if(st.t==='subjects'){
+    const T=TRACKS.find(t=>t.id===d.track);
+    b='<div><h2>رشتهٔ آزمون کدام است؟</h2><div class="muted small">با انتخاب رشته، درس‌ها و دفترچه‌هایش خودکار روشن می‌شوند.</div></div>'
+    +'<div class="grid3">'+TRACKS.map(t=>'<button class="tile '+(d.track===t.id?'sel':'')+'" style="--c:var(--acc-soft)" data-a="trk" data-v="'+t.id+'"><span class="em">'+t.e+'</span><span>'+t.n+'</span></button>').join('')+'</div>'
+    +(T?T.books.map((bk,i)=>'<div class="card stack"><div class="row"><b class="grow">دفترچه '+fa(i+1)+'</b><span class="muted tiny">'+fa(bk.filter(x=>d.subjects.includes(x)).length)+' درس فعال</span></div><div class="grid2">'+bk.map(x=>'<button class="tile '+(d.subjects.includes(x)?'sel':'')+'" style="--c:var(--mint);min-height:60px" data-a="tsub" data-v="'+esc(x)+'"><span>'+esc(x)+'</span></button>').join('')+'</div></div>').join('')+'<div class="muted tiny">درسی که در این آزمون نبود را خاموش کن.</div>':'<div class="card muted" style="text-align:center">بعد از انتخاب رشته، درس‌ها اینجا روشن می‌شوند.</div>');
+  }else if(st.t==='a'){
+    const a=d.ans[st.s],n=d.subjects.indexOf(st.s)+1;
+    b=subHead(d,st.s,'درس '+fa(n)+' از '+fa(d.subjects.length))+'<div><h2>در «'+esc(st.s)+'» چه حسی داشتی؟</h2></div>'
+    +'<div class="grid2">'+EMO.map(e=>'<button class="tile '+(a.emo===e.id?'sel':'')+'" style="--c:var('+e.c+')" data-a="set" data-p="ans|'+esc(st.s)+'|emo" data-v="'+e.id+'" data-t="number"><span class="em">'+e.e+'</span><span>'+e.n+'</span></button>').join('')+'</div>'
+    +'<div class="card q"><b>شدت این حس</b>'+rating('ans|'+st.s+'|int',a.int,'کم','زیاد')+'</div>'
+    +'<div class="card q"><b>اوج این حس کجا بود؟</b>'+seg('ans|'+st.s+'|peak',a.peak,PEAK.map(p=>({v:p.id,l:p.n})))+'</div>'
+    +'<div class="card q"><b>نشانه‌های بدنی</b><div class="chips">'+PHYS.map(p=>'<button class="chip '+(a.phys.includes(p.id)?'sel':'')+'" data-a="phys" data-s="'+esc(st.s)+'" data-v="'+p.id+'">'+p.e+' '+p.n+'</button>').join('')+'</div></div>'
+    +'<div class="card q"><b>تمرکزت چطور بود؟</b>'+rating('ans|'+st.s+'|focus',a.focus,'پراکنده','عالی')+'</div>';
+  }else if(st.t==='b'){
+    const a=d.ans[st.s];
+    b=subHead(d,st.s,esc(st.s))+'<div><h2>چه اتفاقی افتاد و چه کردی؟</h2><div class="muted small">اگر مورد پیش نیامد، صفر بگذار.</div></div>'
+    +'<div class="card">'+stepper('ans|'+st.s+'|ev|surp',a.ev.surp,0,60,'سؤال‌های غافلگیرکننده','')+stepper('ans|'+st.s+'|ev|knew',a.ev.knew,0,60,'بلد بودم ولی حل نشد','')+stepper('ans|'+st.s+'|ev|slow',a.ev.slow,0,60,'سؤال‌های وقت‌گیر','')+stepper('ans|'+st.s+'|ev|env',a.ev.env,0,60,'مشکل محیطی','صدا، زمان، ناظر')+'</div>'
+    +'<div class="card q"><b>وقتی به مشکل خوردی، بیشتر چه کار کردی؟</b><div class="list1">'+REACT.map(r=>'<button class="chip '+(a.react===r.id?'sel':'')+'" data-a="set" data-p="ans|'+esc(st.s)+'|react" data-v="'+r.id+'" data-t="number">'+r.n+'</button>').join('')+'</div></div>'
+    +'<div class="card q"><b>از چه راهبردی استفاده کردی؟</b><div class="chips">'+COPE.map(c=>'<button class="chip '+(a.cope===c.id?'sel':'')+'" data-a="cope" data-s="'+esc(st.s)+'" data-v="'+c.id+'">'+c.e+' '+c.n+'</button>').join('')+'</div>'
+    +(a.cope&&a.cope!=='none'?'<b>راهبرد جواب داد؟</b>'+seg('ans|'+st.s+'|worked',a.worked,[{v:'yes',l:'بله'},{v:'part',l:'تا حدی'},{v:'no',l:'خیر'}]):'')+'</div>'
+    +'<div class="card">'+stepper('ans|'+st.s+'|rec',a.rec,0,60,'بعد از افت تمرکز، چند دقیقه طول کشید برگردم؟','دقیقه')+'</div>'
+    +'<div class="card q"><b>خطای یک سؤال روی سؤال بعدی اثر گذاشت؟</b>'+seg('ans|'+st.s+'|domino',a.domino,[{v:true,l:'بله'},{v:false,l:'خیر'}])+'</div>'
+    +'<div class="card q"><b>پاسخ‌ها را بازبینی کردی؟</b>'+seg('ans|'+st.s+'|review',a.review,[{v:'full',l:'کامل'},{v:'part',l:'ناقص'},{v:'no',l:'خیر'}])+'</div>';
+  }else if(st.t==='thoughts'){
+    b='<div><h2>در ذهنت چه می‌گذشت؟</h2><div class="muted small">هر کدام را که در طول آزمون به ذهنت آمد علامت بزن.</div></div><div class="stack" style="gap:8px">'
+    +THOUGHTS.map(t=>'<button class="chip '+(d.thoughts.includes(t.id)?'sel':'')+'" style="justify-content:flex-start;border-radius:18px;min-height:52px" data-a="tth" data-v="'+t.id+'">'+t.n+'</button>').join('')+'</div>'
+    +'<div class="card stack"><div><label class="lb" for="ot">فکر دیگری هم داشتی؟ (اختیاری)</label><textarea class="input" id="ot" data-in="text" data-p="other">'+esc(d.other)+'</textarea></div><div><label class="lb" for="hm">سخت‌ترین لحظهٔ آزمون کجا و در کدام درس بود؟</label><textarea class="input" id="hm" data-in="text" data-p="hardest" placeholder="یک یا دو جمله بنویس">'+esc(d.hardest)+'</textarea></div></div>';
+  }else if(st.t==='self'){
+    b='<div><h2>نتیجه را چطور حدس می‌زنی؟</h2><div class="muted small">قبل از دیدن کارنامه، برای هر درس حدس بزن.</div></div>'
+    +d.subjects.map(x=>{const s=d.sa[x];return '<div class="card stack"><div class="row"><b class="grow">'+esc(x)+'</b><span class="big" style="font-size:2rem" id="pv-'+d.subjects.indexOf(x)+'">'+fa(s.pred)+'٪</span></div><input type="range" min="0" max="100" step="1" value="'+s.pred+'" data-in="range" data-p="sa|'+esc(x)+'|pred" data-o="pv-'+d.subjects.indexOf(x)+'" aria-label="درصد پیش‌بینی '+esc(x)+'"><div>'
+    +stepper('sa|'+x+'|sure',s.sure,0,200,'تعداد پاسخ‌های مطمئن','')+stepper('sa|'+x+'|hes',s.hes,0,200,'تعداد پاسخ‌های مردد','')+stepper('sa|'+x+'|guess',s.guess,0,200,'تعداد پاسخ‌های حدسی','')+'</div></div>';}).join('');
+  }
+  return wchrome(pct,b,last);
+}
+function subHead(d,s,label){const bk=bookOf(d.track,s);return '<div class="sub-h"><span class="badge" style="--c:var(--acc-soft)">'+(bk?'دفترچه '+fa(bk)+' · ':'')+label+'</span><span class="grow"></span><button class="btn ghost small" data-a="skip" data-s="'+esc(s)+'">از این درس گذشتم</button></div>';}
+function whoList(d){
+  const q=(ui.wq||'').trim().toUpperCase().replace(/-/g,'');
+  const l=DB.students.filter(s=>!q||s.name.toUpperCase().includes(q)||s.id.replace(/-/g,'').includes(q));
+  return '<div class="stack" style="gap:8px">'+l.map(s=>'<button class="tile '+(d.sid===s.id&&!d.newMode?'sel':'')+'" style="--c:var(--acc-soft);flex-direction:row;justify-content:flex-start;gap:12px;min-height:64px" data-a="wpick" data-id="'+esc(s.id)+'"><span class="avatar" style="width:40px;height:40px;border-radius:13px;background:'+avatarBg(s.id)+'">'+esc(initial(s.name))+'</span><span class="grow" style="text-align:start">'+esc(s.name)+'</span><span class="code">'+esc(s.id)+'</span></button>').join('')+'</div>';
+}
+
+/* ---------- result wizard ---------- */
+function vRes(){
+  const ex=DB.exams.find(e=>e.id===ui.eid);if(!ex){ui.view='home';return vHome();}
+  const rs=ui.rs,n=ex.subjects.length,sub=ex.subjects[ui.step],pct=Math.round(100*ui.step/(n+1));
+  let b='',last='بعدی ←';
+  if(ui.step<n){
+    const r=rs.data[sub],sa=ex.sa[sub];
+    b='<div class="sub-h"><span class="badge" style="--c:var(--acc-soft)">درس '+fa(ui.step+1)+' از '+fa(n)+'</span></div><div><h2>نتیجهٔ «'+esc(sub)+'»</h2><div class="muted small">عددها را از کارنامه و پاسخ‌نامه بردار.</div></div>'
+    +'<div class="card stack"><div class="row"><b class="grow">درصد واقعی</b><span class="big" style="font-size:2rem" id="av">'+fa(r.actual)+'٪</span></div><input type="range" min="0" max="100" step="1" value="'+r.actual+'" data-in="range" data-p="rs|data|'+esc(sub)+'|actual" data-o="av" aria-label="درصد واقعی"><div class="muted tiny">پیش‌بینی خودت: '+fa(sa.pred)+'٪</div></div>'
+    +'<div class="card">'+stepper('rs|data|'+sub+'|sureOk',r.sureOk,0,sa.sure,'از '+fa(sa.sure)+' پاسخ مطمئن، چندتا درست بود؟','')+stepper('rs|data|'+sub+'|guessOk',r.guessOk,0,sa.guess,'از '+fa(sa.guess)+' پاسخ حدسی، چندتا درست بود؟','')+'</div>'
+    +'<div class="card"><b>سؤال‌های غلط یا نزده، از کدام نوع بودند؟</b>'+stepper('rs|data|'+sub+'|err|ign',r.err.ign,0,99,'نادانی','بلد نبودم')+stepper('rs|data|'+sub+'|err|emo',r.err.emo,0,99,'خطای هیجانی','بلد بودم ولی استرس یا عجله خرابش کرد')+stepper('rs|data|'+sub+'|err|time',r.err.time,0,99,'خطای زمان','وقت نشد یا زیاد صرف کردم')+stepper('rs|data|'+sub+'|err|care',r.err.care,0,99,'بی‌دقتی','خواندن اشتباه، محاسبه، پاک‌کردن گزینه')+'</div>';
+  }else{
+    last='ثبت و دیدن تحلیل 🎉';
+    b='<div><h2>یک جملهٔ آخر</h2></div><div class="card"><label class="lb" for="rr">مهم‌ترین خطای هیجانی این بار چه بود و دلیلش از نظر خودت چه بود؟ (اختیاری)</label><textarea class="input" id="rr" data-in="text" data-p="rs|reason">'+esc(rs.reason||'')+'</textarea></div>';
+  }
+  return wchrome(pct,b,last);
+}
+
+/* ---------- backup ---------- */
+function vBackup(){
+  const json=JSON.stringify({students:DB.students,exams:DB.exams});
+  return '<div class="enter stack"><div class="top"><button class="icon" data-a="back" aria-label="بازگشت">→</button><h2>پشتیبان‌گیری</h2></div>'
+  +'<div class="card stack"><div class="muted small">اطلاعات فقط روی همین دستگاه ذخیره می‌شود. اگر داده‌های مرورگر پاک شود، از دست می‌روند؛ پس گاهی از آن‌ها نسخهٔ پشتیبان بگیر.</div>'
+  +'<div class="row"><button class="btn small" data-a="copyjson">کپی پشتیبان</button><button class="btn ghost small" data-a="dljson">دانلود فایل</button></div></div>'
+  +'<div class="card stack"><b>بازگردانی</b><textarea class="input" id="imp" dir="ltr" placeholder="متن پشتیبان را اینجا بچسبان"></textarea><button class="btn ghost small" data-a="import">بازگردانی و ادغام</button><div class="muted tiny">دانش‌آموزان و آزمون‌های جدید به داده‌های فعلی اضافه می‌شوند و چیزی پاک نمی‌شود.</div></div>'
+  +'<div class="card stack"><b>پاک کردن همه‌چیز</b>'+(ui.confirm==='wipe'?'<div class="row"><button class="btn danger small" data-a="wipe">بله، همه پاک شود</button><button class="btn ghost small" data-a="cancel">انصراف</button></div>':'<button class="btn ghost small" data-a="confirmwipe">پاک کردن داده‌ها</button>')+'</div>'
+  +'<textarea id="jsonsrc" hidden>'+esc(json)+'</textarea></div>';
+}
+
+/* ---------- render ---------- */
+function render(anim){
+  ui.anim=anim;
+  const v=ui.view;
+  app.innerHTML=v==='home'?vHome():v==='stu'?vStudent():v==='newstu'?vNewStu():v==='report'?vReport():v==='wiz'?vWiz():v==='res'?vRes():v==='backup'?vBackup():vHome();
+  if(anim)window.scrollTo(0,0);
+  setTimeout(post,30);
+  if(v==='report'&&ui.fresh&&anim){ui.fresh=false;confetti();buzz([20,40,20]);}
+}
+function post(){
+  document.querySelectorAll('[data-w]').forEach(el=>{el.style.width=el.dataset.w+'%';});
+  document.querySelectorAll('.ring-fg').forEach(el=>{el.style.strokeDashoffset=el.dataset.off;});
+  document.querySelectorAll('[data-count]').forEach(el=>{const to=+el.dataset.count;if(RM)return;const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/900);el.textContent=fa(Math.round(to*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(f);})(t0);});
+}
+function confetti(){
+  if(RM)return;const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);
+  const x=c.getContext('2d'),W=c.width=innerWidth,H=c.height=innerHeight,cols=['#6D4DF2','#FF6FB5','#34E0B1','#FFCB47','#55B7FF','#FF7A6B'];
+  const P=Array.from({length:120},()=>({x:W/2,y:H*0.3,vx:(Math.random()-.5)*15,vy:-Math.random()*14-3,r:Math.random()*5+3,c:cols[Math.random()*6|0],a:Math.random()*6,va:(Math.random()-.5)*.4}));
+  let f=0;(function tick(){x.clearRect(0,0,W,H);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.vx*=.99;p.a+=p.va;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore();});if(++f<160)requestAnimationFrame(tick);else c.remove();})();
+}
+
+/* ---------- actions ---------- */
+function startDraft(sid){
+  DB.draft=newDraft(sid);if(sid&&!DB.draft.title)DB.draft.title='آزمون شمارهٔ '+fa(examsOf(sid).length+1);
+  persist();ui.wq='';go('wiz',{step:0});
+}
+function finalizeExam(){
+  const d=DB.draft;
+  const ex={id:'e'+Date.now().toString(36),sid:d.sid,track:d.track,skipped:d.skipped||[],title:d.title.trim(),date:d.date,pre:d.pre,subjects:d.subjects,ans:d.ans,thoughts:d.thoughts||[],other:d.other||'',hardest:d.hardest||'',sa:d.sa,created:Date.now()};
+  DB.exams.push(ex);DB.draft=null;persist();
+  stack.length=0;ui={view:'report',sid:d.sid,eid:ex.id,step:0,dim:'all',q:'',fresh:true,rs:null,confirm:null};render(true);
+}
+function toggleIn(arr,v){const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);}
+const actions={
+  back(){goBack();},
+  newq(el){const id=el.dataset.id;startDraft(id||null);},
+  resume(){go('wiz',{step:ui.step||0});},
+  discard(){DB.draft=null;persist();render(false);},
+  newstu(){go('newstu',{ns:{name:'',grade:''}});},
+  nsgrade(el){ui.ns.grade=el.dataset.v;rr(el,0);},
+  nssave(){const n=(ui.ns.name||'').trim();if(!n){toast('نام را بنویس');return;}const s={id:newCode(),name:n,grade:ui.ns.grade||'',created:Date.now()};DB.students.push(s);persist();buzz(20);stack.pop();go('stu',{sid:s.id});toast('کد دانش‌آموز: '+s.id);},
+  open(el){go('stu',{sid:el.dataset.id});},
+  report(el){go('report',{eid:el.dataset.id});},
+  dim(el){ui.dim=el.dataset.v;rr(el,0);},
+  copy(el){copyText(el.dataset.v);},
+  confirmdel(){ui.confirm='del';render(false);},
+  cancel(){ui.confirm=null;render(false);},
+  delstu(){const id=ui.sid;DB.exams=DB.exams.filter(e=>e.sid!==id);DB.students=DB.students.filter(s=>s.id!==id);if(DB.draft&&DB.draft.sid===id)DB.draft=null;persist();goBack();toast('حذف شد');},
+  backup(){go('backup');},
+  copyjson(){copyText($('#jsonsrc').value);},
+  dljson(){try{const b=new Blob([$('#jsonsrc').value],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ayene-azmoon-backup.json';document.body.appendChild(a);a.click();a.remove();toast('فایل ساخته شد');}catch(e){toast('دانلود اینجا ممکن نیست؛ از «کپی پشتیبان» استفاده کن');}},
+  import(){try{const j=JSON.parse($('#imp').value);let a=0,b=0;(j.students||[]).forEach(s=>{if(!stuOf(s.id)){DB.students.push(s);a++;}});(j.exams||[]).forEach(e=>{if(!DB.exams.some(x=>x.id===e.id)){DB.exams.push(e);b++;}});persist();toast(fa(a)+' دانش‌آموز و '+fa(b)+' آزمون اضافه شد');}catch(e){toast('متن پشتیبان معتبر نیست');}},
+  confirmwipe(){ui.confirm='wipe';render(false);},
+  wipe(){DB={students:[],exams:[],draft:null,seeded:true};persist();stack.length=0;ui={view:'home',sid:null,eid:null,step:0,dim:'all',q:'',fresh:false,rs:null,confirm:null};render(true);toast('همه‌چیز پاک شد');},
+  res(el){const ex=DB.exams.find(e=>e.id===el.dataset.id);const data={};ex.subjects.forEach(s=>{const old=ex.res&&ex.res[s],sa=ex.sa[s];data[s]=old?JSON.parse(JSON.stringify(old)):{actual:sa.pred,sureOk:0,guessOk:0,err:{ign:0,emo:0,time:0,care:0}};});go('res',{eid:ex.id,step:0,rs:{data,reason:ex.reason||''}});},
+  set(el){const d=el.dataset,root=ui.view==='res'?ui:DB.draft;let v=d.v;if(d.t==='number')v=+v;else if(d.t==='boolean')v=v==='true';setP(root,d.p,v);buzz();if(ui.view==='wiz')persist();rr(el,1);},
+  step(el){const d=el.dataset,root=ui.view==='res'?ui:DB.draft;const cur=+getP(root,d.p)||0;setP(root,d.p,clamp(cur+(+d.d),+d.min,+d.max));buzz(6);if(ui.view==='wiz')persist();rr(el,0);},
+  phys(el){const a=DB.draft.ans[el.dataset.s],v=el.dataset.v;if(v==='none')a.phys=a.phys.includes('none')?[]:['none'];else{a.phys=a.phys.filter(x=>x!=='none');toggleIn(a.phys,v);}buzz();persist();rr(el,0);},
+  cope(el){const a=DB.draft.ans[el.dataset.s],v=el.dataset.v;a.cope=v;if(v==='none')a.worked='no';else if(a.worked==='no'&&!a._w)a.worked=undefined;buzz();persist();rr(el,0);},
+  tth(el){toggleIn(DB.draft.thoughts,el.dataset.v);buzz();persist();rr(el,0);},
+  trk(el){const d=DB.draft,id=el.dataset.v;if(d.track!==id){d.track=id;d.subjects=[];d.ans={};d.sa={};d.skipped=[];allSubs(id).forEach(addSubject);}buzz();persist();rr(el);},
+  tsub(el){const d=DB.draft,x=el.dataset.v;if(d.subjects.includes(x)){if(d.subjects.length<=1){toast('حداقل یک درس باید روشن بماند');return;}d.subjects=d.subjects.filter(y=>y!==x);delete d.ans[x];delete d.sa[x];}else{addSubject(x);d.skipped=(d.skipped||[]).filter(y=>y!==x);}buzz();persist();rr(el);},
+  skip(el){const d=DB.draft,s=el.dataset.s;if(d.subjects.length<=1){toast('حداقل یک درس باید باقی بماند');return;}
+    const old=stepsFor(d);let i=ui.step;while(i<old.length&&old[i].s===s)i++;const nx=old[i];
+    d.subjects=d.subjects.filter(x=>x!==s);delete d.ans[s];delete d.sa[s];d.skipped=d.skipped||[];if(!d.skipped.includes(s))d.skipped.push(s);
+    const ns=stepsFor(d);ui.step=Math.max(0,ns.findIndex(x=>x.t===nx.t&&x.s===nx.s));persist();buzz(15);toast('«'+s+'» رد شد');render(true);},
+  wpick(el){DB.draft.sid=el.dataset.id;DB.draft.newMode=false;buzz();persist();rr(el,0);},
+  wnew(el){const d=DB.draft;d.newMode=!d.newMode;if(d.newMode){d.sid=null;d.nw=d.nw||{name:'',grade:''};}persist();rr(el,0);},
+  wgrade(el){DB.draft.nw.grade=el.dataset.v;persist();rr(el,0);},
+  wprev(){goBack();},
+  wnext(){
+    if(ui.view==='res')return resNext();
+    const d=DB.draft,steps=stepsFor(d),st=steps[ui.step];
+    if(!valid(st,d)){const bar=$('#nextbtn');if(bar){bar.classList.remove('shake');void bar.offsetWidth;bar.classList.add('shake');}buzz([30,30,30]);toast('همهٔ بخش‌های این صفحه را کامل کن');return;}
+    if(st.t==='who'&&d.newMode){const s={id:newCode(),name:d.nw.name.trim(),grade:d.nw.grade||'',created:Date.now()};DB.students.push(s);d.sid=s.id;d.newMode=false;d.fixed=true;
+      d.title=d.title||'آزمون شمارهٔ ۱';toast('کد '+s.id+' ساخته شد');}
+    else if(st.t==='who'&&!d.title)d.title='آزمون شمارهٔ '+fa(examsOf(d.sid).length+1);
+    buzz(10);
+    if(ui.step>=steps.length-1){finalizeExam();return;}
+    persist();
+    if(st.t==='who'){const ns=stepsFor(d);ui.step=ns.findIndex(x=>x.t==='exam');}else ui.step++;
+    render(true);
+  }
+};
+function addSubject(x){const d=DB.draft;d.subjects.push(x);const o=allSubs(d.track);d.subjects.sort((a,b)=>{const ia=o.indexOf(a),ib=o.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  d.ans[x]={phys:[],ev:{surp:0,knew:0,slow:0,env:0},rec:0};d.sa[x]={pred:60,sure:0,hes:0,guess:0};}
+function rr(el,auto){
+  const sig=el&&el.dataset?{a:el.dataset.a,p:el.dataset.p,v:el.dataset.v,s:el.dataset.s,id:el.dataset.id}:null,y=window.scrollY||0;
+  render(false);window.scrollTo(0,y);
+  if(!sig)return;
+  const t=[...app.querySelectorAll('[data-a]')].find(x=>x.dataset.a===sig.a&&x.dataset.p===sig.p&&x.dataset.v===sig.v&&x.dataset.s===sig.s&&x.dataset.id===sig.id);
+  if(!t)return;
+  if(t.matches('.tile,.chip,.seg button'))t.classList.add('pop');
+  if(auto){const c=t.closest('.card')||t.parentElement,n=c&&c.nextElementSibling;if(n&&n.getBoundingClientRect){const r=n.getBoundingClientRect();if(r.bottom>innerHeight-90||r.top<0)setTimeout(()=>n.scrollIntoView({behavior:RM?'auto':'smooth',block:'center'}),120);}}
+}
+function resNext(){
+  const ex=DB.exams.find(e=>e.id===ui.eid),n=ex.subjects.length;
+  if(ui.step<n){ui.step++;buzz(10);render(true);return;}
+  ex.res=ui.rs.data;ex.reason=ui.rs.reason||'';persist();
+  stack.length=0;ui={view:'report',sid:ex.sid,eid:ex.id,step:0,dim:'all',q:'',fresh:true,rs:null,confirm:null};render(true);
+}
+function copyText(t){
+  const fb=()=>{try{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('کپی شد');}catch(e){toast('کپی نشد');}};
+  try{navigator.clipboard.writeText(t).then(()=>toast('کپی شد'),fb);}catch(e){fb();}
+}
+app.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t||!actions[t.dataset.a])return;actions[t.dataset.a](t,e);});
+app.addEventListener('input',e=>{
+  const t=e.target,k=t.dataset.in;if(!k)return;
+  if(k==='search'){ui.q=t.value;$('#slist').innerHTML=studentList();return;}
+  if(k==='wsearch'){ui.wq=t.value;$('#wl').innerHTML=whoList(DB.draft);return;}
+  if(k==='nsname'){ui.ns.name=t.value;return;}
+  if(k==='wnname'){DB.draft.nw.name=t.value;persist();return;}
+  const root=ui.view==='res'?ui:DB.draft;
+  if(k==='range'){setP(root,t.dataset.p,+t.value);const o=document.getElementById(t.dataset.o);if(o)o.textContent=fa(t.value)+'٪';}
+  else if(k==='text'){setP(root,t.dataset.p,t.value);if(t.dataset.p==='date'){const p=$('#edp');if(p)p.textContent=fdate(t.value);}}
+  if(ui.view==='wiz')persist();
+});
+render(true);
+</script>
+
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body></html>
